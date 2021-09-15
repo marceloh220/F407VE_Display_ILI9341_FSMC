@@ -1,6 +1,6 @@
 # F407VE_Display_ILI9341_FSMC
  Driver to Display ILI9341 on BLACK_F407VE, board based in uController STM32F407VE, using 16-bits FSMC interface.\
- To other targets/mcus the FSMC_INIT function and pointer adrresses must be modified.
+ To other targets/mcus the FSMC_INIT function and pointer adrresses may must be modified.
 
 Adafruit_GFX compatibility but with no dependence
 
