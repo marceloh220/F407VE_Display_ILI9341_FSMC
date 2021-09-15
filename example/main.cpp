@@ -23,8 +23,7 @@ uint32_t testDrawImage();
 
 int main() {
     display.begin();
-    while (1)
-    {
+    while (1) {
         demoLCD();
     }
     return 0;
@@ -47,8 +46,7 @@ typedef struct {
     uint32_t drawImage;
 } test_t;
 
-void demoLCD()
-{
+void demoLCD() {
     test_t t; uint32_t total;
     display.setOrientation(LCD_ORIENTATION_PORTRAIT);
     timer.start();
@@ -61,7 +59,7 @@ void demoLCD()
     total += t.lines = testLines(CYAN);
     total += t.fastLines = testFastLines(RED, BLUE);
     total += t.drawRects = testRects(GREEN);
-    total += t.fillRect = testFilledRects(YELLOW, MAGENTA);
+    total += t.fillRects = testFilledRects(YELLOW, MAGENTA);
     total += t.fillCircles = testFilledCircles(10, MAGENTA);
     total += t.drawCircles = testCircles(10, WHITE);
     total += t.drawTriangles = testTriangles();
@@ -97,34 +95,69 @@ void demoLCD()
     while(true);
 }
 
-uint32_t testFillScreen()
-{
+uint32_t testFillScreen() {
     uint32_t t = 0;
+    uint16_t color;
+    uint8_t test = 0;
+
     timer.reset();
     display.fillScreen(BLACK);
     t += timer.elapsed_time().count();
+    color = display.readPixel(0, 0);
+    display.setCursor(0, 0);
+    display.setTextColor(GREEN, BLACK);
+    if(color == BLACK) { display.printf("Color: BLACK"); test++;}
+    else display.printf("Color: %d", color);
     ThisThread::sleep_for(1s);
+
     timer.reset();
     display.fillScreen(RED);
     t += timer.elapsed_time().count();
+    color = display.readPixel(0, 0);
+    display.setCursor(0, 0);
+    display.setTextColor(GREEN, BLACK);
+    if(color == RED) { display.printf("Color: RED"); test++;}
+    else display.printf("Color: %d", color);
     ThisThread::sleep_for(1s);
+
     timer.reset();
     display.fillScreen(GREEN);
     t += timer.elapsed_time().count();
+    color = display.readPixel(0, 0);
+    display.setCursor(0, 0);
+    display.setTextColor(GREEN, BLACK);
+    if(color == GREEN) { display.printf("Color: GREEN"); test++;}
+    else display.printf("Color: %d", color);
     ThisThread::sleep_for(1s);
+
     timer.reset();
     display.fillScreen(BLUE);
     t += timer.elapsed_time().count();
+    color = display.readPixel(0, 0);
+    display.setCursor(0, 0);
+    display.setTextColor(GREEN, BLACK);
+    if(color == BLUE) { display.printf("Color: BLUE"); test++; }
+    else display.printf("Color: %d", color);
     ThisThread::sleep_for(1s);
+
     timer.reset();
     display.fillScreen(YELLOW);
     t += timer.elapsed_time().count();
+    color = display.readPixel(0, 0);
+    display.setCursor(0, 0);
+    display.setTextColor(GREEN, BLACK);
+    if(color == YELLOW) { display.printf("Color: YELLOW"); test++;}
+    else display.printf("Color: %d", color);
     ThisThread::sleep_for(1s);
+
+    if(test == 5) display.printf("\nAll Right with FSMC 16-bits bus!");
+    else display.printf("\nSomething Wrong with FSMC 16-bits bus!");
+    ThisThread::sleep_for(3s);
+
     return t/1000;
 }
 
-uint32_t testText()
-{
+uint32_t testText() {
     display.fillScreen(BLACK);
     timer.reset();
     display.setCursor(0, 0);
@@ -156,8 +189,7 @@ uint32_t testText()
     return t;
 }
 
-uint32_t testLines(uint16_t color)
-{
+uint32_t testLines(uint16_t color) {
     uint32_t t = 0;
     int     x1, y1, x2, y2,
             w = display.getWidth(),
@@ -204,8 +236,7 @@ uint32_t testLines(uint16_t color)
     return t/1000;
 }
 
-uint32_t testFastLines(uint16_t color1, uint16_t color2)
-{
+uint32_t testFastLines(uint16_t color1, uint16_t color2) {
     int x, y, w = display.getWidth(), h = display.getHeight();
     display.fillScreen(BLACK);
     timer.reset();
@@ -216,16 +247,14 @@ uint32_t testFastLines(uint16_t color1, uint16_t color2)
     return t;
 }
 
-uint32_t testRects(uint16_t color)
-{
+uint32_t testRects(uint16_t color) {
     int n, i, i2,
         cx = display.getWidth()  / 2,
         cy = display.getHeight() / 2;
     display.fillScreen(BLACK);
     n = min(display.getWidth(), display.getHeight());
     timer.reset();
-    for(i = 2; i < n; i += 6)
-    {
+    for(i = 2; i < n; i += 6) {
         i2 = i / 2;
         display.drawRect(cx - i2, cy - i2, i, i, color);
     }
@@ -234,16 +263,14 @@ uint32_t testRects(uint16_t color)
     return t;
 }
 
-uint32_t testFilledRects(uint16_t color1, uint16_t color2)
-{
+uint32_t testFilledRects(uint16_t color1, uint16_t color2) {
     uint32_t t = 0;
     int n, i, i2,
         cx = display.getWidth() / 2 - 1,
         cy = display.getHeight() / 2 - 1;
     display.fillScreen(BLACK);
     n = min(display.getWidth(), display.getHeight());
-    for(i = n; i > 0; i -= 6)
-    {
+    for(i = n; i > 0; i -= 6) {
         i2 = i / 2;
         timer.reset();
         display.fillRect(cx-i2, cy-i2, i, i, color1);
@@ -255,15 +282,12 @@ uint32_t testFilledRects(uint16_t color1, uint16_t color2)
     return t/1000;
 }
 
-uint32_t testFilledCircles(uint8_t radius, uint16_t color)
-{
+uint32_t testFilledCircles(uint8_t radius, uint16_t color) {
     int x, y, w = display.getWidth(), h = display.getHeight(), r2 = radius * 2;
     display.fillScreen(BLACK);
     timer.reset();
-    for(x = radius; x < w; x += r2)
-    {
-        for(y = radius; y < h; y += r2)
-        {
+    for(x = radius; x < w; x += r2) {
+        for(y = radius; y < h; y += r2) {
         display.fillCircle(x, y, radius, color);
         }
     }
@@ -272,18 +296,15 @@ uint32_t testFilledCircles(uint8_t radius, uint16_t color)
     return t;
 }
 
-uint32_t testCircles(uint8_t radius, uint16_t color)
-{
+uint32_t testCircles(uint8_t radius, uint16_t color) {
     int x, y, r2 = radius * 2,
         w = display.getWidth()  + radius,
         h = display.getHeight() + radius;
     // Screen is not cleared for this one -- this is
     // intentional and does not affect the reported time.
     timer.reset();
-    for(x = 0; x < w; x += r2)
-    {
-        for(y = 0; y < h; y += r2)
-        {
+    for(x = 0; x < w; x += r2) {
+        for(y = 0; y < h; y += r2) {
         display.drawCircle(x, y, radius, color);
         }
     }
@@ -292,15 +313,13 @@ uint32_t testCircles(uint8_t radius, uint16_t color)
     return t;
 }
 
-uint32_t testTriangles()
-{
+uint32_t testTriangles() {
     int n, i, cx = display.getWidth() / 2 - 1,
                 cy = display.getHeight() / 2 - 1;
     display.fillScreen(BLACK);
     n = min(cx, cy);
     timer.reset();
-    for(i = 0; i < n; i += 5)
-    {
+    for(i = 0; i < n; i += 5) {
         display.drawTriangle(
         cx    , cy - i, // peak
         cx - i, cy + i, // bottom left
@@ -312,14 +331,12 @@ uint32_t testTriangles()
     return t;
 }
 
-uint32_t testFilledTriangles()
-{
+uint32_t testFilledTriangles() {
     uint32_t t = 0;
     int i, cx = display.getWidth() / 2 - 1,
             cy = display.getHeight() / 2 - 1;
     display.fillScreen(BLACK);
-    for(i = min(cx, cy); i > 10; i -= 5)
-    {
+    for(i = min(cx, cy); i > 10; i -= 5) {
         timer.reset();
         display.fillTriangle(cx, cy - i, cx - i, cy + i, cx + i, cy + i, display.color565(0, i*10, i*10));
         t += timer.elapsed_time().count();
@@ -329,16 +346,14 @@ uint32_t testFilledTriangles()
     return t/1000;
 }
 
-uint32_t testRoundRects()
-{
+uint32_t testRoundRects() {
     int w, i, i2,
         cx = display.getWidth() / 2 - 1,
         cy = display.getHeight() / 2 - 1;
     display.fillScreen(BLACK);
     w = display.getWidth(), display.getHeight();
     timer.reset();
-    for(i = 0; i < w; i += 6)
-    {
+    for(i = 0; i < w; i += 6) {
         i2 = i / 2;
         display.drawRoundRect(cx-i2, cy-i2, i, i, i/8, display.color565(i, 0, 0));
     }
@@ -347,15 +362,13 @@ uint32_t testRoundRects()
     return t;
 }
 
-uint32_t testFilledRoundRects()
-{
+uint32_t testFilledRoundRects() {
     int i, i2,
         cx = display.getWidth()  / 2 - 1,
         cy = display.getHeight() / 2 - 1;
     display.fillScreen(BLACK);
     timer.reset();
-    for(i = min(display.getWidth(), display.getHeight()); i > 20; i -=6 )
-    {
+    for(i = min(display.getWidth(), display.getHeight()); i > 20; i -=6 ) {
         i2 = i / 2;
         display.fillRoundRect(cx - i2, cy - i2, i, i, i / 8, display.color565(0, i, 0));
     }
@@ -364,19 +377,16 @@ uint32_t testFilledRoundRects()
     return t;
 }
 
-uint32_t testDrawImage()
-{
+uint32_t testDrawImage() {
     display.fillScreen(BLACK);
     timer.reset();
-    if (display.GetOrientation() == LCD_ORIENTATION_LANDSCAPE || display.GetOrientation() == LCD_ORIENTATION_LANDSCAPE_MIRROR)
-    {
-        display.drawImage((display.getWidth() - bmSTLogo.xSize) / 2, 0, &bmSTLogo);
-    }
-    else
-    {
-        display.drawImage(0, (display.getHeight() - bmSTLogo.ySize) / 2, &bmSTLogo);
+    if (display.GetOrientation() == LCD_ORIENTATION_LANDSCAPE || display.GetOrientation() == LCD_ORIENTATION_LANDSCAPE_MIRROR) {
+        display.drawImage((display.getWidth() - bmSTLogo.width) / 2, 0, &bmSTLogo);
+    } else {
+        display.drawImage(0, (display.getHeight() - bmSTLogo.height) / 2, &bmSTLogo);
     }
     uint32_t t = chrono::duration_cast<chrono::milliseconds>(timer.elapsed_time()).count();
     ThisThread::sleep_for(3s);
     return t;
 }
+
