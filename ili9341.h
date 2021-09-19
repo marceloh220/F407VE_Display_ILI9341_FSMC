@@ -29,6 +29,7 @@
 #include "colors.h"
 #include "fonts.h"
 #include "image.h"
+#include <cstdint>
 #include <stdbool.h>
 
 /**
@@ -120,7 +121,7 @@ protected:
 	volatile uint16_t* fsmcCMD;
 	volatile uint16_t* fsmcDATA;
 
-    float _bright = 0;
+    uint8_t _bright = 0;
 
     mbed::DigitalOut _rst;
     mbed::PwmOut _bl;
@@ -131,7 +132,7 @@ protected:
 	};
 
 	lcdFontProperties_t Font = {
-			YELLOW, BLACK, &Font12, 1
+			GREEN, BLACK, &Font12, 1
 	};
 
 	lcdCursorPos_t cursorXY = { 0, 0 };
@@ -143,8 +144,11 @@ protected:
 
 	inline void writeCommand(uint8_t command) {*fsmcCMD = command;}
     inline void writeData(uint16_t data) {*fsmcDATA = data;}
+    void setWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
     inline uint16_t readData(void) {return *fsmcDATA;}
-	void drawPixels(uint16_t x, uint16_t y, uint16_t *data,	uint32_t dataLength);
+	
+    virtual int _putc(int value);
+    virtual int _getc();
 
 public:
 
@@ -207,6 +211,7 @@ public:
 	* @return void
 	*/
 	void drawPixel(uint16_t x, uint16_t y, uint16_t color);
+    void drawPixels(uint16_t x, uint16_t y, uint16_t *data,	uint32_t dataLength);
 
 	/**
 	* @brief Draw a line
@@ -399,9 +404,9 @@ public:
 	 * @return void
 	 */
 	void drawChar(int16_t x, int16_t y, uint8_t c, uint16_t color, uint16_t bg);
-	void printf(const char *fmt, ...);
-
-    void setWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
+    void printf(const char *fmt, ...);
+    void clrLine(uint16_t bg);
+    void clrLine();
 
 	/**
 	 * @brief Sets the font
@@ -456,6 +461,8 @@ public:
 	 * @return void
 	*/
 	void setCursor(uint16_t x, uint16_t y);
+    uint16_t getColumn(uint16_t coll);
+    uint16_t getLine(uint16_t line);
 
     /**
 	 * @brief Set the brigth of display
@@ -465,7 +472,8 @@ public:
      *
 	 * @return void
 	*/
-	void backlightBright(float bright);
+	void backlightBright(uint8_t bright);
+    uint8_t backlightBright();
 
 	void inversionOff(void);
 	void inversionOn(void);

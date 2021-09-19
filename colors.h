@@ -27,7 +27,7 @@
 
 typedef enum {
 // Basic Color definitions
-    BLACK    = (uint16_t)(0x0000)
+     BLACK   = (uint16_t)(0x0000)
     ,BLUE    = (uint16_t)(0x001F)
     ,RED     = (uint16_t)(0xF800)
     ,GREEN   = (uint16_t)(0x07E0)

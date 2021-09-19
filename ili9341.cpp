@@ -22,6 +22,7 @@
 * See the License for the specific language governing permissions and limitations under the License.
 */ 
 
+#include <cstdint>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -100,7 +101,7 @@ void ILI9341::begin(void) {
 	reset();
 
 	writeCommand(ILI9341_DISPLAYOFF);
-
+/*
 	writeCommand(0xCF);
 	writeData(0x00);writeData(0x83);writeData(0x30);
     
@@ -119,7 +120,7 @@ void ILI9341::begin(void) {
 
 	writeCommand(0xEA);
 	writeData(0x00);writeData(0x00);
-
+*/
 	writeCommand(ILI9341_POWERCONTROL1);
 	writeData(0x26);
 
@@ -175,8 +176,8 @@ void ILI9341::begin(void) {
 	ThisThread::sleep_for(100ms);
 	writeCommand(ILI9341_DISPLAYON);
 	ThisThread::sleep_for(100ms);
-	writeCommand(ILI9341_MEMORYWRITE);
-
+//	writeCommand(ILI9341_MEMORYWRITE);
+    fillScreen(BLACK);
     _bl.period(.005);
     _bright = 50;
     _bl = .5;
@@ -185,7 +186,7 @@ void ILI9341::begin(void) {
 
 void ILI9341::test(void) {
 	setWindow(0, 0, Properties.width - 1, Properties.height - 1);
-
+	
 	uint8_t stripSize = Properties.height / 8;
 
 	for (int y = 0; y < Properties.height; y++) {
@@ -230,6 +231,17 @@ void ILI9341::drawPixel(uint16_t x, uint16_t y, uint16_t color) {
 
 	setWindow(x, y, x, y);
 	writeData(color);
+}
+
+void ILI9341::drawPixels(uint16_t x, uint16_t y, uint16_t *data, uint32_t dataLength) {
+
+	uint32_t i = 0;
+
+	setWindow(x, y, Properties.width - 1, Properties.height - 1);
+
+	do {
+		writeData(*data++);
+	} while (i < dataLength);
 }
 
 void ILI9341::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color) {
@@ -291,7 +303,6 @@ void ILI9341::drawFastHLine(uint16_t x, uint16_t y, uint16_t width, uint16_t col
 	}
 
 	setWindow(x, y, width, y);
-
 	for (int line = x; line <= width; line++) {
 		writeData(color);
 	}
@@ -316,7 +327,6 @@ void ILI9341::drawFastVLine(uint16_t x, uint16_t y, uint16_t height, uint16_t co
 	}
 
 	setWindow(x, y, x, height);
-
 	for (int line = y; line <= height; line++) {
 		writeData(color);
 	}
@@ -604,11 +614,9 @@ void ILI9341::printf(const char *fmt, ...) {
 	static char buf[256];
 	char *p;
 	va_list lst;
-
 	va_start(lst, fmt);
 	vsprintf(buf, fmt, lst);
 	va_end(lst);
-
 	p = buf;
 	while (*p) {
 		if (*p == '\n') {
@@ -630,11 +638,22 @@ void ILI9341::printf(const char *fmt, ...) {
 			}
 		}
 		p++;
-
 		if (cursorXY.y >= Properties.height) {
 			cursorXY.y = 0;
 		}
 	}
+}
+
+void ILI9341::clrLine(uint16_t bg) {
+    uint16_t width = Properties.width;
+    uint16_t height = Font.pFont->Height;
+    for(uint16_t y = cursorXY.y; y < (cursorXY.y+height); y++) {
+        drawFastHLine(0, y, width, bg);
+    }
+}
+
+void ILI9341::clrLine() {
+    clrLine(Font.BackColor);
 }
 
 void ILI9341::setTextFont(font_t *font) {
@@ -695,11 +714,23 @@ void ILI9341::setCursor(uint16_t x, uint16_t y) {
 	setWindow(x, y, x, y);
 }
 
-void ILI9341::backlightBright(float bright) {
+uint16_t ILI9341::getColumn(uint16_t coll) {
+    return (coll * (Font.pFont->Width));
+}
+
+uint16_t ILI9341::getLine(uint16_t line) {
+    return (line * (Font.pFont->Height));
+}
+
+void ILI9341::backlightBright(uint8_t bright) {
     if(bright > 100) bright = 100;
     if(bright < 0) bright = 0;
     _bright = bright;
-	_bl = bright/100;
+	_bl = bright/100.0;
+}
+
+uint8_t ILI9341::backlightBright() {
+    return _bright;
 }
 
 void ILI9341::inversionOff(void) {
@@ -800,17 +831,6 @@ void ILI9341::reset(void) {
 
 /* --- Protected methods --- */
 
-void ILI9341::drawPixels(uint16_t x, uint16_t y, uint16_t *data, uint32_t dataLength) {
-
-	uint32_t i = 0;
-
-	setWindow(x, y, Properties.width - 1, Properties.height - 1);
-
-	do {
-		writeData(data[i++]);
-	} while (i < dataLength);
-}
-
 void ILI9341::setWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1) {
 	writeCommand(ILI9341_COLADDRSET);
 	writeData((x0 >> 8) & 0xFF);
@@ -823,6 +843,29 @@ void ILI9341::setWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1) {
 	writeData((y1 >> 8) & 0xFF);
 	writeData(y1 & 0xFF);
 	writeCommand(ILI9341_MEMORYWRITE);
+}
+
+int  ILI9341::_putc(int c) {
+    if (c == '\n') {
+        cursorXY.y += Font.pFont->Height;
+        cursorXY.x = 0;
+    } else if (c == '\r') {
+        // skip em
+    } else if (c == '\t') {
+		cursorXY.x += Font.pFont->Width * 4;
+    } else {
+        drawChar(cursorXY.x, cursorXY.y, c, Font.TextColor, Font.BackColor);
+        cursorXY.x += Font.pFont->Width;
+        if (Font.TextWrap && (cursorXY.x > (Properties.width - Font.pFont->Width))) {
+            cursorXY.y += Font.pFont->Height;
+            cursorXY.x = 0;
+        }
+    }
+    return c;
+}
+
+int ILI9341::_getc() {
+    return -1;
 }
 
 /* --- Static functions --- */
