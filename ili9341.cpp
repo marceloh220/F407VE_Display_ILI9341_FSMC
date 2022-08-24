@@ -235,13 +235,11 @@ void ILI9341::drawPixel(uint16_t x, uint16_t y, uint16_t color) {
 
 void ILI9341::drawPixels(uint16_t x, uint16_t y, uint16_t *data, uint32_t dataLength) {
 
-	uint32_t i = 0;
-
 	setWindow(x, y, Properties.width - 1, Properties.height - 1);
 
 	do {
 		writeData(*data++);
-	} while (i < dataLength);
+	} while (--dataLength);
 }
 
 void ILI9341::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color) {
